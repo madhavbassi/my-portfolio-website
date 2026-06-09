@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Madhav Admin Dashboard</title>
+  <style>
+    :root {
+      font-family: Inter, system-ui, sans-serif;
+      color: #e2e8f0;
+      background: #020617;
+      --surface: #0f172a;
+      --surface-2: #111827;
+      --border: rgba(148,163,184,.18);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,.18);
+      --danger: #fca5a5;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#020617 0%,#08101f 45%,#03070f 100%);color:var(--text);}
+    a{color:var(--accent);text-decoration:none;}
+    a:hover{text-decoration:underline;}
+    .page{max-width:1440px;margin:0 auto;padding:24px 24px 40px;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:24px;border-radius:24px;background:rgba(15,23,42,.96);border:1px solid rgba(148,163,184,.14);box-shadow:0 20px 50px rgba(0,0,0,.45);margin-bottom:24px;}
+    .brand h1{margin:0;font-size:clamp(1.9rem,2.5vw,2.6rem);}
+    .brand p{margin:8px 0 0;color:var(--muted);font-size:.95rem;}
+    .top-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;border:1px solid rgba(56,189,248,.18);background:rgba(56,189,248,.08);color:var(--accent);font-size:.95rem;}
+    .pill.online{border-color:rgba(56,189,248,.32);color:var(--accent);}
+    .button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:14px;border:none;background:var(--accent);color:#020617;font-weight:700;cursor:pointer;transition:transform .18s,filter .18s;}
+    .button:hover{transform:translateY(-1px);filter:brightness(1.05);}
+    .button.secondary{background:rgba(255,255,255,.06);color:var(--text);border:1px solid rgba(148,163,184,.18);}
+    .button.ghost{background:transparent;color:var(--accent);border:1px solid rgba(56,189,248,.2);}
+    .card{background:rgba(15,23,42,.94);border:1px solid rgba(148,163,184,.12);border-radius:24px;box-shadow:0 20px 40px rgba(0,0,0,.35);padding:26px;margin-bottom:24px;}
+    .card h2,.section-card h2{margin:0 0 18px;font-size:1.3rem;}
+    .card h3{margin:0 0 14px;font-size:1.05rem;color:var(--text);}
+    .field{display:grid;gap:8px;margin-bottom:18px;}
+    .field label{font-size:.95rem;color:var(--muted);}
+    .field input,.field textarea{width:100%;border:1px solid var(--border);background:var(--surface-2);color:var(--text);caret-color:var(--text);padding:14px 16px;border-radius:16px;outline:none;transition:border .18s,background .18s;}
+    .field input:focus,.field textarea:focus{border-color:var(--accent);background:#020617;}
+    textarea{resize:vertical;min-height:108px;}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+    .full{grid-column:1/-1;}
+    .list-panel{display:grid;gap:14px;}
+    .list-item{background:var(--surface-2);border:1px solid var(--border);border-radius:18px;padding:18px;position:relative;}
+    .list-item .remove-btn{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:999px;border:none;background:var(--danger);color:#fff;font-size:18px;cursor:pointer;opacity:.95;}
+    .list-item .remove-btn:hover{opacity:1;}
+    .hint{font-size:.95rem;color:var(--muted);margin-bottom:15px;}
+    .sidebar{display:grid;gap:18px;}
+    .editor-layout{display:grid;grid-template-columns:300px minmax(0,1fr)320px;gap:20px;align-items:start;}
+    .section-nav{display:grid;gap:12px;}
+    .section-nav a{display:block;padding:14px 16px;border-radius:16px;background:var(--surface-2);color:var(--text);font-weight:600;border:1px solid var(--border);transition:all .18s;}
+    .section-nav a:hover{background:var(--accent-soft);border-color:rgba(15,105,255,.24);}
+    .profile-card{display:grid;gap:14px;padding:22px;border-radius:24px;background:linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);border:1px solid var(--border);}
+    .profile-avatar{width:74px;height:74px;border-radius:22px;background:linear-gradient(135deg,#0f69ff,#5a8cff);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.8rem;font-weight:700;}
+    .profile-name{font-size:1rem;font-weight:700;margin:0;}
+    .profile-role{color:var(--muted);font-size:.95rem;margin:0;}
+    .profile-meta{display:grid;gap:10px;font-size:.95rem;color:var(--muted);}
+    .preview{position:sticky;top:24px;align-self:start;}
+    .preview-card{padding:24px;border-radius:24px;background:rgba(15,23,42,.95);border:1px solid rgba(148,163,184,.12);}
+    .preview-hero{display:grid;gap:10px;}
+    .preview-avatar{display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
+    .preview-avatar img{width:100%;height:100%;border-radius:24px;object-fit:cover;display:block;}
+    .preview-avatar-fallback{width:110px;height:110px;border-radius:24px;background:linear-gradient(135deg,#0f172a,#111827);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:2.25rem;font-weight:700;border:1px solid rgba(56,189,248,.25);}
+    .preview-eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:var(--accent);font-weight:700;}
+    .preview-name{font-size:clamp(2rem,3vw,2.6rem);margin:0;color:var(--text);}
+    .preview-college{color:var(--muted);font-size:.95rem;}
+    .preview-desc{color:var(--text);line-height:1.75;margin:10px 0;}
+    .preview-tags{display:flex;flex-wrap:wrap;gap:8px;}
+    .preview-tags .tag{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:6px 12px;font-size:.85rem;font-weight:700;}
+    .preview-about{background:var(--surface-2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-top:20px;color:var(--text);}
+    .preview-contact{margin-top:20px;}
+    .preview-contact h3{margin:0 0 10px;font-size:1rem;color:var(--text);}
+    .toast{position:fixed;bottom:24px;right:24px;padding:16px 20px;border-radius:18px;background:var(--text);color:#fff;opacity:0;transform:translateY(10px);transition:opacity .25s ease,transform .25s ease;z-index:1000;}
+    .toast.visible{opacity:1;transform:translateY(0);}
+    .toast.success{background:#0f69ff;}
+    .toast.error{background:var(--danger);}
+    .hidden{display:none;}
+    .login-card{max-width:700px;margin:0 auto;}
+    .login-card h2{font-size:2rem;margin-bottom:14px;}
+    .login-card p{color:var(--muted);margin-bottom:22px;}
+    .error{color:var(--danger);font-size:.95rem;margin-top:-10px;margin-bottom:14px;}
+    .reset-footer{font-size:.9rem;color:var(--muted);}
+    .button-group{display:flex;gap:12px;flex-wrap:wrap;}
+    @media (max-width:1160px){.editor-layout{grid-template-columns:1fr;}.preview{position:relative;top:0;}}
+    @media (max-width:760px){.page{padding:18px;}.topbar{flex-direction:column;align-items:flex-start;}.button-group{flex-direction:column;}.row{grid-template-columns:1fr;}.section-nav{grid-template-columns:1fr;}.button{width:100%;}.card{padding:20px;}.list-item{padding:16px;}.remove-btn{top:12px;right:12px;width:30px;height:30px;}.toast{left:50%;right:auto;transform:translate(-50%,0);width:min(calc(100% - 32px),400px);}.field input,.field textarea{font-size:15px;}}</style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div>
+        <h1>Admin Dashboard</h1>
+        <small>Edit your portfolio content in one place.</small>
+      </div>
+      <div>
+        <a href="madhav_bassi_portfolio.html" class="button">Open Portfolio</a>
+      </div>
+    </div>
+
+    <div class="card" id="loginCard">
+      <h2>Login to edit</h2>
+      <p>Enter your admin password to access the editor. This is a separate interface from the public portfolio page.</p>
+      <form id="loginForm">
+        <div class="field">
+          <label for="adminPassword">Admin password</label>
+          <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Enter password" required />
+        </div>
+        <button class="button" type="submit">Login</button>
+        <div class="error hidden" id="loginError">Password incorrect. Try again.</div>
+        <div style="margin-top:12px;">
+          <a href="#" id="forgotPasswordLink" class="link-button">Forgot password?</a>
+        </div>
+      </form>
+      <p class="footer-note">If you want, change the password inside this file after login. To save edits directly to the portfolio file, run <code>python3 save-portfolio-server.py</code> from this folder.</p>
+    </div>
+
+    <div class="card hidden" id="resetCard">
+      <h2>Reset admin password</h2>
+      <p class="hint">Use OTP verification to reset the admin password securely.</p>
+      <form id="resetForm">
+        <div class="field">
+          <label for="resetEmail">Recovery email</label>
+          <input id="resetEmail" type="email" placeholder="you@example.com" />
+          <p class="hint">This is only used for OTP delivery in this local admin panel. If SMTP is configured on the local save server, the code will be emailed here.</p>
+        </div>
+        <div class="field status-row" style="gap:12px;">
+          <button class="button" type="button" id="sendOtpButton">Send OTP</button>
+          <button class="button secondary" type="button" id="resetBackButton">Back to login</button>
+        </div>
+        <div class="hint hidden" id="otpStatus">OTP sent. Enter it below to continue.</div>
+        <div class="field">
+          <label for="otpInput">One-time passcode</label>
+          <input id="otpInput" type="text" maxlength="6" placeholder="Enter OTP" autocomplete="one-time-code" />
+        </div>
+        <div class="field">
+          <label for="newPassword">New password</label>
+          <input id="newPassword" type="password" placeholder="New admin password" />
+        </div>
+        <div class="field">
+          <label for="confirmPassword">Confirm new password</label>
+          <input id="confirmPassword" type="password" placeholder="Repeat new password" />
+        </div>
+        <button class="button" type="submit">Reset password</button>
+        <div class="error hidden" id="resetError"></div>
+        <div class="hint hidden" id="resetSuccess"></div>
+      </form>
+    </div>
+
+    <div id="adminApp" class="hidden">
+      <div class="card status-row" style="justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;">
+        <div>
+          <h2>Portfolio editor</h2>
+          <p class="hint">A complete admin interface for editing every section, text block, and the live preview that appears on your portfolio page.</p>
+        </div>
+        <div class="button-group">
+          <button class="button" id="saveButton">Save all changes</button>
+          <button class="button secondary" id="logoutButton">Logout</button>
+        </div>
+      </div>
+
+      <div class="editor-layout">
+        <aside class="sidebar">
+          <div class="profile-card">
+            <div class="profile-avatar" id="profileAvatar">MB</div>
+            <div>
+              <p class="profile-name" id="profileName">Madhav Bassi</p>
+              <p class="profile-role" id="profileRole">AI / ML Student · SGT University</p>
+            </div>
+            <div class="profile-meta">
+              <div>Editor mode: <strong>Live</strong></div>
+              <div id="serverStatus">Save server status: checking…</div>
+            </div>
+          </div>
+
+          <div class="section-nav">
+            <a href="#heroSection">Hero & About</a>
+            <a href="#currentSection">Current focus</a>
+            <a href="#timelineSection">Timeline</a>
+            <a href="#projectsSection">Projects</a>
+          </div>
+
+          <div class="card">
+            <h3>Quick tips</h3>
+            <p class="hint">Use the buttons beside each section to add new cards. Save changes when finished to push updates to the portfolio file via the local server.</p>
+          </div>
+        </aside>
+
+        <main>
+          <section id="heroSection" class="card section-card">
+            <h2>Hero & About</h2>
+            <p class="hint">Edit the headline, introduction, and contact content that appears at the top of your page.</p>
+            <div class="row">
+              <div class="field">
+                <label>Top label</label>
+                <input id="heroEyebrow" placeholder="AI / ML Student" />
+              </div>
+              <div class="field">
+                <label>Main name</label>
+                <input id="heroName" placeholder="Madhav Bassi" />
+              </div>
+              <div class="field">
+                <label>Profile image URL</label>
+                <input id="heroImageUrl" placeholder="https://example.com/photo.jpg" />
+                <p class="hint">Paste a public image URL or use the file picker below to set your profile photo.</p>
+              </div>
+              <div class="field">
+                <label>Upload a photo</label>
+                <input id="heroImageUpload" type="file" accept="image/*" />
+              </div>
+              <div class="field">
+                <label>College / tagline</label>
+                <input id="heroCollege" placeholder="B.Tech in AI & ML · SGT University, Haryana" />
+              </div>
+              <div class="field full">
+                <label>Hero description</label>
+                <textarea id="heroDesc" placeholder="Describe who you are and what you do."></textarea>
+              </div>
+              <div class="field full">
+                <label>Intro summary</label>
+                <textarea id="heroSummary" placeholder="Add a short personal summary."></textarea>
+              </div>
+              <div class="field full">
+                <label>Tags (HTML allowed)</label>
+                <textarea id="heroTags" placeholder="<span class='tag'>Python</span> <span class='tag'>AI</span>"></textarea>
+                <p class="hint">You can add tag elements like the existing portfolio tags.</p>
+              </div>
+              <div class="field full">
+                <label>About section</label>
+                <textarea id="aboutText" placeholder="Write a friendly About section for visitors."></textarea>
+              </div>
+              <div class="field full">
+                <label>Contact section HTML</label>
+                <textarea id="contactBox" placeholder="Add your contact buttons and links here."></textarea>
+                <p class="hint">Use the existing contact HTML structure or paste your own buttons.</p>
+              </div>
+              <div class="field full">
+                <label>Footer text</label>
+                <input id="footerLeft" placeholder="Built by Madhav Bassi · SGT University · 2025" />
+              </div>
+            </div>
+          </section>
+
+          <section id="currentSection" class="card section-card">
+            <h2>Current focus</h2>
+            <p class="hint">Add skill, study or project focus cards that describe what you are working on now.</p>
+            <div id="currentCards" class="list-panel"></div>
+            <button class="button" id="addCurrentBtn">Add status card</button>
+          </section>
+
+          <section id="timelineSection" class="card section-card">
+            <h2>Timeline</h2>
+            <p class="hint">Use timeline items to tell the story of your journey and milestones.</p>
+            <div id="timelineItems" class="list-panel"></div>
+            <button class="button" id="addTimelineBtn">Add timeline item</button>
+          </section>
+
+          <section id="projectsSection" class="card section-card">
+            <h2>Projects</h2>
+            <p class="hint">Add or update project cards with title, summary, link, and status.</p>
+            <div id="projectItems" class="list-panel"></div>
+            <button class="button" id="addProjectBtn">Add project</button>
+          </section>
+        </main>
+
+        <aside class="preview">
+          <div class="preview-card">
+            <h2>Live preview</h2>
+            <div class="preview-avatar" id="previewAvatarContainer">
+              <div class="preview-avatar-fallback" id="previewAvatarFallback">MB</div>
+            </div>
+            <div class="preview-hero">
+              <div id="previewEyebrow" class="preview-eyebrow">AI / ML Student</div>
+              <h3 id="previewName" class="preview-name">Madhav Bassi</h3>
+              <div id="previewCollege" class="preview-college">B.Tech in AI & ML · SGT University, Haryana</div>
+              <div id="previewDesc" class="preview-desc">AI/ML student at the intersection of cutting-edge tools and foundational machine learning — exploring, learning, and building every day.</div>
+              <div id="previewTags" class="preview-tags"><span class="tag">Python</span><span class="tag">Streamlit</span><span class="tag">AI</span></div>
+            </div>
+            <div id="previewAbout" class="preview-about">Hey, I am Madhav Bassi — a third-year AI & ML student from SGT University, Haryana. I love turning ideas into projects and learning by doing.</div>
+            <div id="previewContact" class="preview-contact"><h3>Contact section</h3><div>Contact buttons and links will update here.</div></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const adminSecret = 'portfolioAdmin2026';
+    const adminPasswordKey = 'portfolio-admin-password';
+    const authKey = 'portfolio-admin-auth';
+    const mainDataKey = 'portfolio-main-data';
+    const currentCardsKey = 'portfolio-current-cards';
+    const timelineKey = 'portfolio-timeline-items';
+    const projectDataKey = 'portfolio-projects';
+
+    const serverUrl = 'http://127.0.0.1:4567/save-portfolio';
+    const statusUrl = 'http://127.0.0.1:4567/status';
+    const sendOtpUrl = 'http://127.0.0.1:4567/send-otp';
+    const verifyOtpUrl = 'http://127.0.0.1:4567/verify-otp';
+
+    const loginCard = document.getElementById('loginCard');
+    const adminApp = document.getElementById('adminApp');
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+    const saveButton = document.getElementById('saveButton');
+    const logoutButton = document.getElementById('logoutButton');
+    const serverStatus = document.getElementById('serverStatus');
+    const toast = document.getElementById('toast');
+
+    const fields = {
+      heroEyebrow: document.getElementById('heroEyebrow'),
+      heroName: document.getElementById('heroName'),
+      heroCollege: document.getElementById('heroCollege'),
+      heroDesc: document.getElementById('heroDesc'),
+      heroSummary: document.getElementById('heroSummary'),
+      heroTags: document.getElementById('heroTags'),
+      heroImageUrl: document.getElementById('heroImageUrl'),
+      aboutText: document.getElementById('aboutText'),
+      contactBox: document.getElementById('contactBox'),
+      footerLeft: document.getElementById('footerLeft'),
+    };
+
+    const currentCardsContainer = document.getElementById('currentCards');
+    const timelineContainer = document.getElementById('timelineItems');
+    const projectItemsContainer = document.getElementById('projectItems');
+    const heroImageUpload = document.getElementById('heroImageUpload');
+    const previewAvatarContainer = document.getElementById('previewAvatarContainer');
+    const previewAvatarFallback = document.getElementById('previewAvatarFallback');
+    const sidebarProfileAvatar = document.getElementById('profileAvatar');
+    const sidebarProfileName = document.getElementById('profileName');
+    const sidebarProfileRole = document.getElementById('profileRole');
+
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const resetCard = document.getElementById('resetCard');
+    const resetForm = document.getElementById('resetForm');
+    const resetEmail = document.getElementById('resetEmail');
+    const sendOtpButton = document.getElementById('sendOtpButton');
+    const otpInput = document.getElementById('otpInput');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const resetError = document.getElementById('resetError');
+    const resetSuccess = document.getElementById('resetSuccess');
+    const otpStatus = document.getElementById('otpStatus');
+    const resetBackButton = document.getElementById('resetBackButton');
+
+    const addCurrentBtn = document.getElementById('addCurrentBtn');
+    const addTimelineBtn = document.getElementById('addTimelineBtn');
+    const addProjectBtn = document.getElementById('addProjectBtn');
+
+    const defaultData = {
+      heroEyebrow: 'AI / ML Student',
+      heroName: 'Madhav Bassi',
+      heroCollege: 'B.Tech in AI & ML · SGT University, Haryana',
+      heroDesc: 'AI/ML student at the intersection of cutting-edge tools and foundational machine learning — exploring, learning, and building every day.',
+      heroSummary: 'Building and sharing in public with AI, while strengthening my core fundamentals through hands-on projects.',
+      heroTags: '<span class="tag">Python</span> <span class="tag">Streamlit</span> <span class="tag">AI</span>',
+      heroImageUrl: '',
+      aboutText: 'Hey, I am Madhav Bassi — a third-year AI & ML student from SGT University, Haryana. I love turning ideas into projects and learning by doing.',
+      contactBox: '<h2 class="contact-title">Let\'s connect</h2>\n<p class="contact-sub">Whether you want to collaborate, give feedback on my work,<br/>or just talk AI — my inbox is always open.</p>\n<div class="contact-links">\n  <a href="https://www.linkedin.com/in/madhav-bassi-7ba622205/" target="_blank" class="btn btn-white">LinkedIn →</a>\n  <a href="https://github.com/madhavbassi" target="_blank" class="btn btn-ghost-white">GitHub</a>\n  <a href="mailto:workwithmadhavbassi@gmail.com" class="btn btn-ghost-white">Email me</a>\n</div>',
+      footerLeft: 'Built by <span>Madhav Bassi</span> · SGT University · 2025',
+    };
+
+    function getAdminPassword(){
+      return localStorage.getItem(adminPasswordKey) || adminSecret;
+    }
+
+    function authIsValid(){
+      return sessionStorage.getItem(authKey) === 'true';
+    }
+
+    function showToast(message, type = 'success'){
+      if (!toast) return;
+      toast.textContent = message;
+      toast.className = `toast visible ${type}`;
+      setTimeout(() => {
+        toast.className = 'toast';
+      }, 3000);
+    }
+
+    function showAdmin(){
+      loginCard.classList.add('hidden');
+      resetCard.classList.add('hidden');
+      adminApp.classList.remove('hidden');
+    }
+
+    function showLogin(){
+      loginCard.classList.remove('hidden');
+      resetCard.classList.add('hidden');
+      adminApp.classList.add('hidden');
+    }
+
+    function showReset(){
+      loginCard.classList.add('hidden');
+      resetCard.classList.remove('hidden');
+      adminApp.classList.add('hidden');
+      resetError.classList.add('hidden');
+      resetSuccess.classList.add('hidden');
+      otpStatus.classList.add('hidden');
+    }
+
+    function loadFieldData(){
+      try {
+        const saved = JSON.parse(localStorage.getItem(mainDataKey) || 'null');
+        const data = saved || defaultData;
+        Object.entries(fields).forEach(([key, element]) => {
+          element.value = data[key] || defaultData[key] || '';
+        });
+      } catch (err) {
+        console.warn('Load field data failed', err);
+      }
+    }
+
+    function loadCardLists(){
+      loadCurrentCards();
+      loadTimelineItems();
+      loadProjectItems();
+    }
+
+    function createListItem(data, index, type){
+      const item = document.createElement('div');
+      item.className = 'list-item';
+      item.dataset.index = index;
+      const removeButton = document.createElement('button');
+      removeButton.className = 'remove-btn';
+      removeButton.textContent = '×';
+      removeButton.addEventListener('click', () => {
+        removeListItem(type, index);
+      });
+
+      let html = '';
+      if (type === 'current'){
+        html = `
+          <div class="field"><label>Icon</label><input data-field="icon" value="${escapeHtml(data.icon || '💡')}" /></div>
+          <div class="field"><label>Title</label><input data-field="title" value="${escapeHtml(data.title)}" /></div>
+          <div class="field full"><label>Description</label><textarea data-field="desc">${escapeHtml(data.desc)}</textarea></div>
+        `;
+      } else if (type === 'timeline'){
+        html = `
+          <div class="row">
+            <div class="field"><label>Date</label><input data-field="date" value="${escapeHtml(data.date)}" /></div>
+            <div class="field"><label>Tag</label><input data-field="tag" value="${escapeHtml(data.tag)}" /></div>
+          </div>
+          <div class="field"><label>Title</label><input data-field="title" value="${escapeHtml(data.title)}" /></div>
+          <div class="field full"><label>Description</label><textarea data-field="sub">${escapeHtml(data.sub)}</textarea></div>
+          <div class="field"><label>Active</label><input type="checkbox" data-field="active" ${data.active ? 'checked' : ''} /></div>
+        `;
+      } else if (type === 'project'){
+        html = `
+          <div class="field"><label>URL</label><input data-field="url" value="${escapeHtml(data.url)}" /></div>
+          <div class="row">
+            <div class="field"><label>Number</label><input data-field="number" value="${escapeHtml(data.number)}" /></div>
+            <div class="field"><label>Status</label><input data-field="status" value="${escapeHtml(data.status)}" /></div>
+          </div>
+          <div class="field"><label>Title</label><input data-field="title" value="${escapeHtml(data.title)}" /></div>
+          <div class="field full"><label>Description</label><textarea data-field="desc">${escapeHtml(data.desc)}</textarea></div>
+          <div class="field full"><label>Tags (HTML)</label><textarea data-field="tags">${escapeHtml(data.tags)}</textarea></div>
+        `;
+      }
+
+      item.innerHTML = html;
+      item.prepend(removeButton);
+
+      Array.from(item.querySelectorAll('[data-field]')).forEach(input => {
+        input.addEventListener('input', saveUnpublished);
+      });
+
+      return item;
+    }
+
+    function escapeHtml(value){
+      return String(value || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function saveDraft(){
+      const data = {};
+      Object.entries(fields).forEach(([key, element]) => { data[key] = element.value; });
+      const currentCards = collectListData('current');
+      const timelineItems = collectListData('timeline');
+      const projectItems = collectListData('project');
+      localStorage.setItem(mainDataKey, JSON.stringify(data));
+      localStorage.setItem(currentCardsKey, JSON.stringify(currentCards));
+      localStorage.setItem(timelineKey, JSON.stringify(timelineItems));
+      localStorage.setItem(projectDataKey, JSON.stringify(projectItems));
+      return { data, currentCards, timelineItems, projectItems };
+    }
+
+    function readImageFile(file){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleHeroImageUpload(event){
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await readImageFile(file);
+        fields.heroImageUrl.value = dataUrl;
+        saveUnpublished();
+      } catch (err) {
+        showToast('Unable to read image file.', 'error');
+      }
+    }
+
+    function saveUnpublished(){
+      saveDraft();
+      updatePreview();
+    }
+
+    function generateOtp(){
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    function clearOtpState(){
+      otpStatus.classList.add('hidden');
+      resetError.classList.add('hidden');
+      resetSuccess.classList.add('hidden');
+    }
+
+    async function sendOtp(){
+      resetError.classList.add('hidden');
+      resetSuccess.classList.add('hidden');
+      const email = resetEmail.value.trim();
+      if (!email) {
+        resetError.textContent = 'Enter the recovery email address.';
+        resetError.classList.remove('hidden');
+        return;
+      }
+      try {
+        const response = await fetch(sendOtpUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Unable to send OTP.');
+        otpStatus.textContent = result.message || `OTP sent to ${email}.`;
+        otpStatus.classList.remove('hidden');
+        if (result.demo && result.otp) {
+          resetSuccess.textContent = `Demo OTP: ${result.otp}. Use this code to continue.`;
+          resetSuccess.classList.remove('hidden');
+        }
+      } catch (err) {
+        resetError.textContent = err.message;
+        resetError.classList.remove('hidden');
+      }
+    }
+
+    async function verifyOtpForReset(){
+      const email = resetEmail.value.trim();
+      const otp = otpInput.value.trim();
+      if (!email || !otp) {
+        resetError.textContent = 'Provide both your email and the OTP.';
+        resetError.classList.remove('hidden');
+        return false;
+      }
+      try {
+        const response = await fetch(verifyOtpUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp })
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          resetError.textContent = result.message || 'OTP verification failed.';
+          resetError.classList.remove('hidden');
+          return false;
+        }
+        resetError.classList.add('hidden');
+        return true;
+      } catch (err) {
+        resetError.textContent = err.message;
+        resetError.classList.remove('hidden');
+        return false;
+      }
+    }
+
+    function validateResetInputs(){
+      const password = newPassword.value.trim();
+      const confirm = confirmPassword.value.trim();
+      if (!password || password.length < 6) {
+        resetError.textContent = 'Enter a new password with at least 6 characters.';
+        resetError.classList.remove('hidden');
+        return false;
+      }
+      if (password !== confirm) {
+        resetError.textContent = 'Passwords do not match.';
+        resetError.classList.remove('hidden');
+        return false;
+      }
+      resetError.classList.add('hidden');
+      return true;
+    }
+
+    function resetPassword(event){
+      event.preventDefault();
+      if (!verifyOtpForReset() || !validateResetInputs()) return;
+      localStorage.setItem(adminPasswordKey, newPassword.value.trim());
+      clearOtpState();
+      resetSuccess.textContent = 'Password updated successfully. You can now log in with your new password.';
+      resetSuccess.classList.remove('hidden');
+      resetError.classList.add('hidden');
+      setTimeout(() => {
+        showLogin();
+        loginError.classList.add('hidden');
+        resetForm.reset();
+        resetSuccess.classList.add('hidden');
+      }, 1600);
+    }
+
+    function startResetFlow(event){
+      event.preventDefault();
+      showReset();
+    }
+
+    function cancelReset(event){
+      event.preventDefault();
+      clearOtpState();
+      resetForm.reset();
+      resetError.classList.add('hidden');
+      resetSuccess.classList.add('hidden');
+      showLogin();
+    }
+
+    function updatePreview(){
+      const previewEyebrow = document.getElementById('previewEyebrow');
+      const previewName = document.getElementById('previewName');
+      const previewCollege = document.getElementById('previewCollege');
+      const previewDesc = document.getElementById('previewDesc');
+      const previewTags = document.getElementById('previewTags');
+      const previewAbout = document.getElementById('previewAbout');
+      const previewContact = document.getElementById('previewContact');
+      if (!previewName || !previewEyebrow || !previewCollege) return;
+
+      previewEyebrow.textContent = fields.heroEyebrow.value || 'AI / ML Student';
+      previewName.textContent = fields.heroName.value || 'Madhav Bassi';
+      previewCollege.textContent = fields.heroCollege.value || 'B.Tech in AI & ML · SGT University, Haryana';
+      previewDesc.textContent = fields.heroDesc.value || 'AI/ML student at the intersection of cutting-edge tools and foundational machine learning — exploring, learning, and building every day.';
+      previewTags.innerHTML = fields.heroTags.value || '<span class="tag">Python</span> <span class="tag">Streamlit</span> <span class="tag">AI</span>';
+      previewAbout.innerHTML = fields.aboutText.value || 'Hey, I am Madhav Bassi — a third-year AI & ML student from SGT University, Haryana. I love turning ideas into projects and learning by doing.';
+      if (sidebarProfileName) sidebarProfileName.textContent = fields.heroName.value || 'Madhav Bassi';
+      if (sidebarProfileRole) sidebarProfileRole.textContent = fields.heroCollege.value || 'AI / ML Student · SGT University';
+      const imageUrl = fields.heroImageUrl.value.trim();
+      previewAvatarContainer.innerHTML = '';
+      if (imageUrl) {
+        const image = document.createElement('img');
+        image.src = imageUrl;
+        image.alt = fields.heroName.value || 'Profile photo';
+        previewAvatarContainer.appendChild(image);
+      } else {
+        previewAvatarContainer.appendChild(previewAvatarFallback);
+        const initials = (fields.heroName.value || 'MB').split(' ').map(part => part[0] || '').join('').slice(0,2).toUpperCase();
+        previewAvatarFallback.textContent = initials;
+        if (sidebarProfileAvatar) sidebarProfileAvatar.textContent = initials;
+      }
+      if (sidebarProfileAvatar && imageUrl) {
+        sidebarProfileAvatar.textContent = (fields.heroName.value || 'MB').split(' ').map(p => p[0] || '').join('').slice(0,2).toUpperCase();
+      }
+      previewContact.innerHTML = fields.contactBox.value || '<h3 style="margin:0 0 10px;color:#e2e8f0;font-size:1rem;">Contact section</h3><div style="color:#cbd5e1;">Your contact buttons and links will appear here.</div>';
+    }
+
+    function setServerStatus(message, online = false){
+      if (!serverStatus) return;
+      serverStatus.textContent = message;
+      serverStatus.style.color = online ? '#a5f3fc' : '#f8b4b4';
+    }
+
+    async function pingServer(){
+      try {
+        const response = await fetch(statusUrl, { method:'GET' });
+        if (!response.ok) throw new Error('Server not ready');
+        const data = await response.json();
+        setServerStatus(data.message || 'Local save server is running.', true);
+        return true;
+      } catch (err) {
+        setServerStatus('Local save server is not running. Run python3 save-portfolio-server.py to enable codebase writes.');
+        return false;
+      }
+    }
+
+    async function saveToCodebase(payload){
+      try {
+        const response = await fetch(serverUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Save failed');
+        setServerStatus('Saved directly to portfolio codebase.', true);
+        showToast('Saved directly to portfolio file.', 'success');
+        return true;
+      } catch (err) {
+        setServerStatus('Saved locally only. Local save server is offline.');
+        showToast('Local save only. Start python3 save-portfolio-server.py to update the file.', 'error');
+        return false;
+      }
+    }
+
+    function loadCurrentCards(){
+      const saved = JSON.parse(localStorage.getItem(currentCardsKey) || 'null');
+      const cards = Array.isArray(saved) ? saved : [
+        { icon:'🧪', title:'AI Tool Exploration', desc:'Discovering and hands-on testing new AI tools every week — then building mini projects with them to understand what is actually useful.' },
+        { icon:'🧠', title:'AIML Core Skills', desc:'Going deep on ML fundamentals — algorithms, math, and model building — both from first principles and via modern frameworks.' },
+        { icon:'💡', title:'Problem Solving with AI', desc:'Applying AI skills to solve meaningful challenges — turning ideas into working solutions using the tools and models I learn.' },
+        { icon:'🎓', title:'B.Tech · AI & ML · 3rd Year', desc:'Studying AI & Machine Learning at SGT University, Haryana — balancing coursework with self-directed learning every day.' }
+      ];
+      currentCardsContainer.innerHTML = '';
+      cards.forEach((card, index) => currentCardsContainer.appendChild(createListItem(card, index, 'current')));
+    }
+
+    function loadTimelineItems(){
+      const saved = JSON.parse(localStorage.getItem(timelineKey) || 'null');
+      const items = Array.isArray(saved) ? saved : [
+        { date:'2026 — Present', title:'Building CS & AI/ML Fundamentals + AI Generalist Skills', sub:'Strengthening core computer science and machine learning fundamentals — from algorithms and math to model building — while simultaneously developing AI generalist skills by exploring new tools, learning to solve real problems through them, and building in public through projects and experiments.', tag:'Growing', active:true },
+        { date:'Jun 2025 — May 2026', title:'Video editing internship at UniBuddies', sub:'Worked with SGT University to create content and edit Instagram reels, gaining experience in branding, content strategy, deadlines, and teamwork.', tag:'Internship', active:true },
+        { date:'2025', title:'Creative Head at Google Developer Student Club', sub:'Joined GDSE as a Core Team Member handling creative direction, social media content, and video editing within a tech community.', tag:'Leadership', active:true },
+        { date:'2020 — 2021', title:'Started content creation during COVID', sub:'Created YouTube videos from gaming to infotainment, building storytelling, scripting, editing, analytics, and audience understanding.', tag:'Creative start', active:false },
+        { date:'2019', title:'First tech curiosity in 10th grade', sub:'Began looking beyond textbooks and exploring how technology actually works in practice, which sparked my long-term interest in AI and engineering.', tag:'Beginning', active:false }
+      ];
+      timelineContainer.innerHTML = '';
+      items.forEach((item,index) => timelineContainer.appendChild(createListItem(item,index,'timeline')));
+    }
+
+    function loadProjectItems(){
+      const saved = JSON.parse(localStorage.getItem(projectDataKey) || 'null');
+      const list = Array.isArray(saved) ? saved : [
+        { url:'https://lnkd.in/gTx3vBBW', number:'01', title:'Smart Parking Lot Management System', desc:'A Python OOP project built with Streamlit for an interactive UI, designed to manage parking slots and simulate a real-world parking system.', tags:'<span class="tag">Python</span> <span class="tag">OOP</span> <span class="tag">Streamlit</span>', status:'Completed' }
+      ];
+      projectItemsContainer.innerHTML = '';
+      list.forEach((project,index) => projectItemsContainer.appendChild(createListItem(project,index,'project')));
+    }
+
+    function removeListItem(type, index){
+      const list = Array.from(document.querySelectorAll(`#${type === 'project' ? 'projectItems' : type === 'timeline' ? 'timelineItems' : 'currentCards'} .list-item`));
+      if (!list[index]) return;
+      list[index].remove();
+      saveAll(true);
+    }
+
+    function collectListData(type){
+      const list = Array.from(document.querySelectorAll(`#${type === 'project' ? 'projectItems' : type === 'timeline' ? 'timelineItems' : 'currentCards'} .list-item`));
+      return list.map(item => {
+        const obj = {};
+        item.querySelectorAll('[data-field]').forEach(input => {
+          const key = input.getAttribute('data-field');
+          if (input.type === 'checkbox') obj[key] = input.checked;
+          else obj[key] = input.value;
+        });
+        return obj;
+      });
+    }
+
+    async function saveAll(showToast = true){
+      saveButton.disabled = true;
+      saveButton.textContent = 'Saving...';
+      const { data, currentCards, timelineItems, projectItems } = saveDraft();
+      const payload = {
+        secret: adminSecret,
+        mainData: data,
+        currentCards,
+        timeline: timelineItems,
+        projects: projectItems
+      };
+      const savedToCodebase = await saveToCodebase(payload);
+
+      if (showToast) {
+        saveButton.textContent = savedToCodebase ? 'Saved to codebase ✓' : 'Saved locally ✓';
+        setTimeout(() => { saveButton.textContent = 'Save all changes'; }, 2000);
+      }
+      saveButton.disabled = false;
+    }
+
+    function addCurrentCard(){
+      const card = { icon:'✨', title:'New status', desc:'Describe what you are working on right now.' };
+      const index = currentCardsContainer.children.length;
+      currentCardsContainer.appendChild(createListItem(card,index,'current'));
+    }
+
+    function addTimelineEntry(){
+      const item = { date:'YYYY', title:'New milestone', sub:'Describe this milestone.', tag:'Detail', active:false };
+      const index = timelineContainer.children.length;
+      timelineContainer.appendChild(createListItem(item,index,'timeline'));
+    }
+
+    function addProjectEntry(){
+      const project = { url:'#', number:'00', title:'New project title', desc:'Short description of this project.', tags:'<span class="tag">New</span>', status:'Draft' };
+      const index = projectItemsContainer.children.length;
+      projectItemsContainer.appendChild(createListItem(project,index,'project'));
+    }
+
+    function logout(){
+      sessionStorage.removeItem(authKey);
+      showLogin();
+    }
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const password = document.getElementById('adminPassword').value.trim();
+      if (password === getAdminPassword()) {
+        sessionStorage.setItem(authKey, 'true');
+        loginError.classList.add('hidden');
+        showAdmin();
+        loadFieldData();
+        loadCardLists();
+        updatePreview();
+        await pingServer();
+      } else {
+        loginError.classList.remove('hidden');
+      }
+    });
+
+    forgotPasswordLink.addEventListener('click', startResetFlow);
+    sendOtpButton.addEventListener('click', sendOtp);
+    resetBackButton.addEventListener('click', cancelReset);
+    resetForm.addEventListener('submit', resetPassword);
+    saveButton.addEventListener('click', () => saveAll(true));
+    logoutButton.addEventListener('click', logout);
+    addCurrentBtn.addEventListener('click', addCurrentCard);
+    addTimelineBtn.addEventListener('click', addTimelineEntry);
+    addProjectBtn.addEventListener('click', addProjectEntry);
+
+    Object.values(fields).forEach(field => field.addEventListener('input', updatePreview));
+    heroImageUpload.addEventListener('change', handleHeroImageUpload);
+
+    if (authIsValid()) {
+      showAdmin();
+      loadFieldData();
+      loadCardLists();
+      updatePreview();
+      pingServer();
+    }
+  </script>
+</body>
+</html>
